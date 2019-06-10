@@ -1,0 +1,226 @@
+## Eduardo Lopez Ayala
+## Carnet 19000477
+## Laboratorio 3 Econometria
+
+```{r}
+varianza = function(dsinicial,formula,B,n){
+  
+    nboots=B
+    tamano.nrow <- length(dsinicial[,1])
+    #set.seed(1)
+    
+    
+    #agregando la columba de observaciones a mi matriz
+    obs = round(formula,2)
+    #values= bind x,y,obs
+    
+    dsinicial=cbind(dsinicial,obs)
+
+
+    yhat.mat=NULL
+    #--------------------------
+    #GENERANDO LOS SAMPLES Xi  (BOOTS) y los coloco en una matriz yhat.mat
+    #--------------------------
+    for(i in 1:nboots){
+      trn=dsinicial[sample(1:tamano.nrow,size=n,replace=FALSE),] #sample de n puntos este es mi xj
+      spline=smooth.spline(x=trn[,3],y=trn[,2],w = NULL, spar = 0.1) #fit
+      y.hat=predict(spline,x=trn[,3])  #genero la prediccion para obtener mi fi
+      yhat.mat=cbind(y.hat$y,yhat.mat)
+    }
+    yhat.mat=round(yhat.mat,2)
+
+    
+    #--------------------------
+    #GENERANDO LA VARIANZA
+    #--------------------------
+    V=apply(yhat.mat,1,FUN=var)
+    V<-matrix(round(V,2), nrow = tamano.nrow, byrow = TRUE)
+    
+    v_poblacional<-mean(V)
+  
+    return(v_poblacional)
+}
+
+sesgo = function(dsinicial,formula,B,n) {
+  
+    nboots=B
+    tamano.nrow <-length(dsinicial[,1])
+    #set.seed(1)
+    e=rnorm(n=length(x),mean=0,sd=2)
+    
+    
+
+    
+    obs = round(formula+e,2)
+    
+    dsinicial=cbind(dsinicial,obs)
+    #set.seed(2)
+    
+
+    
+    
+    yhat.mat=NULL
+    #--------------------------
+    #GENERANDO LOS SAMPLES Xi  (BOOTS) y los coloco en una matriz yhat.mat
+    #--------------------------
+    for(i in 1:nboots){
+      trn=dsinicial[sample(1:tamano.nrow,size=n,replace=FALSE),] #sample de n puntos este es mi xj
+      spline=smooth.spline(x=trn[,1],y=trn[,3],w = NULL, spar = 0.1) #fit
+      y.hat=predict(spline,x=trn[,1])  #genero la prediccion para obtener mi fi
+      yhat.mat=cbind(y.hat$y,yhat.mat)
+    }
+    yhat.mat=round(yhat.mat,2)
+
+    #--------------------------
+
+    #--------------------------
+    #GENERANDO LOS ERRORES (BIAS)
+    #--------------------------
+    dif=0
+    #calculo la media para cada xj
+    E=apply(yhat.mat,1,FUN=mean) 
+    E<-matrix(round(E,2), nrow = n, byrow = TRUE)
+    bias=E-dsinicial[,2]
+
+
+    bias_poblacional=mean(bias)
+    
+    bias=(bias_poblacional**2)/nboots  # se genera el bias poblacional en relacion a la media y al cuadrado de los errores
+    
+    return(bias_poblacional)
+  
+}
+
+
+```
+
+
+
+```{r}
+#Probando ahora con distintos Grados de polinomio
+grado=c()
+bias=c()
+var=c()
+#Grado=1
+#########################################
+formula=(0.0025*(x**1))+5
+
+    #creacion del dataset
+    x=seq(from=1,to=100*5,by=50)
+    
+    y=formula
+    #obs = round(formula + noise,2)
+    
+    #data set inicial
+    dsinicial<-cbind(x,y)
+    #
+    formula=(0.0025*(dsinicial[,1]**1))+5
+    #tamaño de las muestras
+    n=10
+    #numero boots
+    B=3
+    
+grado <- c(grado, 1)
+bias<-c(bias,sesgo(dsinicial,formula,B,n))
+var<-c(var, varianza(dsinicial,formula,B,n))
+
+print(sesgo(dsinicial,formula,B,n))
+```
+
+```{r}
+#Grado=2
+#########################################
+formula=(0.5*(x**2))+5
+
+    #creacion del dataset
+    x=seq(from=1,to=100*5,by=50)
+    
+    y=formula
+    #obs = round(formula + noise,2)
+    
+    #data set inicial
+    dsinicial<-cbind(x,y)
+    #
+    formula=(0.5*(dsinicial[,1]**2))+5
+    #tamaño de las muestras
+    n=10
+    #numero boots
+    B=3
+    
+grado <- c(grado, 2)
+bias<-c(bias,sesgo(dsinicial,formula,B,n))
+var<-c(var, varianza(dsinicial,formula,B,n))
+```
+
+
+```{r}
+#Grado=3
+#########################################
+formula=(0.5*(x**3))+5
+
+    #creacion del dataset
+    x=seq(from=1,to=100*5,by=50)
+    
+    y=formula
+    #obs = round(formula + noise,2)
+    
+    #data set inicial
+    dsinicial<-cbind(x,y)
+    #
+    formula=(0.5*(dsinicial[,1]**3))+5
+    #tamaño de las muestras
+    n=10
+    #numero boots
+    B=3
+    
+grado <- c(grado, 3)
+bias<-c(bias,sesgo(dsinicial,formula,B,n))
+var<-c(var, varianza(dsinicial,formula,B,n))
+```
+
+
+```{r}
+#Grado=4
+#########################################
+formula=(0.5*(x**4))+5
+
+    #creacion del dataset
+    x=seq(from=1,to=100*5,by=50)
+    
+    y=formula
+    #obs = round(formula + noise,2)
+    
+    #data set inicial
+    dsinicial<-cbind(x,y)
+    #
+    formula=(0.5*(dsinicial[,1]**4))+5
+    #tamaño de las muestras
+    n=10
+    #numero boots
+    B=3
+    
+grado <- c(grado, 4)
+bias<-c(bias,sesgo(dsinicial,formula,B,n))
+var<-c(var, varianza(dsinicial,formula,B,n))
+```
+
+
+```{r}
+print(grado)
+print(bias)
+print(var)
+```
+
+
+```{r}
+
+
+plot( grado, bias, type="l", col="red",main="Grafica de Bias contra Varianza segun grado polinomio")
+par(new=TRUE)
+plot( grado, var, type="l", col="green" )
+
+```
+
+Conclusiones, con respecto a esto se ve que un grado de polinomio 2 es un valor cercano donde ambas graficas convergen, sin embargo el bias se vuelve a disparar luego de ese punto.
+
+
